@@ -3,6 +3,9 @@
 namespace Habib\TranslationManager;
 
 
+use Closure;
+use Illuminate\Contracts\Translation\Loader;
+use Illuminate\Contracts\Translation\Translator;
 use Illuminate\Support\Str;
 use League\Flysystem\Config;
 use Illuminate\Support\Collection;
@@ -22,13 +25,13 @@ class Manager
     /**
      * Translator
      *
-     * @var \Illuminate\Translation\Translator
+     * @var Translator
      */
     protected $translator;
     /**
      * Translation loader
      *
-     * @var \Illuminate\Translation\LoaderInterface
+     * @var Loader
      */
     protected $loader;
 
@@ -47,9 +50,10 @@ class Manager
      */
     public function __construct()
     {
-        $this->translator = App::make('translator');
-        $this->loader = Lang::getLoader();
-        $this->languagesPath = App::langPath();
+
+        $this->translator = app()->make('translator');
+        $this->loader = $this->translator->getLoader();
+        $this->languagesPath = resource_path('lang');
         $this->directory_separator = DIRECTORY_SEPARATOR;
     }
 
@@ -89,8 +93,8 @@ class Manager
      *
      * @param null $namespace
      *
-     * @return \Illuminate\Support\Collection
-     * @throws \Habib\TranslationManager\Exceptions\InvalidNamespaceException
+     * @return Collection
+     * @throws InvalidNamespaceException
      */
     public function files($namespace = null)
     {
@@ -139,7 +143,9 @@ class Manager
 
         $key = ($namespace ? "{$namespace}::" : '') . $group;
 
-        return $this->translator->trans($key, [], $language ?: $this->defaultLanguage());
+        $language=$language ?? $this->defaultLanguage();
+
+        return $this->translator->get($key, [], $language );
     }
 
     /**
@@ -178,7 +184,7 @@ class Manager
             return $this->loader->namespaces();
         }
 
-        $accessor = \Closure::bind(function () {
+        $accessor = Closure::bind(function () {
             return $this->hints;
         }, $this->loader, $this->loader);
 
@@ -204,7 +210,7 @@ class Manager
      * @param null $path
      * @param bool $recursive
      *
-     * @return \Illuminate\Support\Collection
+     * @return Collection
      */
     protected function pathContent($path = null, $recursive = false)
     {

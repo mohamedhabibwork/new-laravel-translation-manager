@@ -26,8 +26,7 @@ class TranslationManagerServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        $this->publishResources()
-            ->registerRoutes();
+        $this->publishResources();
     }
 
     /**
@@ -53,6 +52,10 @@ class TranslationManagerServiceProvider extends ServiceProvider
         ], 'views');
 
         $this->publishes([
+            "{$this->path}assets" => public_path('vendor/translation_manager'),
+        ], 'assets');
+
+        $this->publishes([
             "{$this->path}config/translation_manager.php" => config_path('translation_manager.php'),
         ], 'config');
 
@@ -62,15 +65,14 @@ class TranslationManagerServiceProvider extends ServiceProvider
     /**
      * Register package routes
      *
-     * @return $this
      */
-    protected function registerRoutes()
+    public static function registerRoutes()
     {
         $prefix = config('translation_manager.prefix');
 
         Route::group([
             'prefix'     => $prefix,
-            'middleware' => config('translation_manager.middleware', []),
+            'middleware' => config('translation_manager.middlecware', []),
             'namespace'  => '\Habib\TranslationManager\Controllers',
         ], function ($router)
         {
@@ -79,7 +81,5 @@ class TranslationManagerServiceProvider extends ServiceProvider
             $router->put("/edit/{language}/{file}/{namespace?}", "Controller@update")->name('translation_manager.update');
             $router->get("/ajax/files", "Controller@files")->name('translation_manager.files');
         });
-
-        return $this;
     }
 }

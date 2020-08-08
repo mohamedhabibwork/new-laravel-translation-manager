@@ -3,12 +3,16 @@
 namespace Habib\TranslationManager\Controllers;
 
 
+use Habib\TranslationManager\Exceptions\InvalidNamespaceException;
+use Illuminate\Contracts\View\Factory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Habib\TranslationManager\Manager;
 use Illuminate\Routing\Controller as BaseController;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Habib\TranslationManager\Requests\TranslationRequest;
+use Illuminate\View\View;
 
 /**
  * Class Controller
@@ -21,7 +25,7 @@ class Controller extends BaseController
     use ValidatesRequests;
 
     /**
-     * @var \Habib\TranslationManager\Manager
+     * @var Manager
      */
     protected $manager;
 
@@ -36,12 +40,12 @@ class Controller extends BaseController
     /**
      * Display index page of translation
      *
-     * @return \Illuminate\Http\Response
+     * @return Factory|View
      */
     public function index()
     {
         $namespaces = $this->manager->namespaces();
-
+//        dd($this->manager);
         return view('translation_manager::index', compact('namespaces'));
     }
 
@@ -52,7 +56,7 @@ class Controller extends BaseController
      * @param string      $file
      * @param string|null $namespace
      *
-     * @return \Illuminate\Http\Response
+     * @return Factory|View
      */
     public function edit($language, $file, $namespace = null)
     {
@@ -68,12 +72,12 @@ class Controller extends BaseController
     /**
      * Save translation file
      *
-     * @param \Habib\TranslationManager\Requests\TranslationRequest $request
+     * @param TranslationRequest $request
      * @param string                                                   $language
      * @param string                                                   $file
      * @param string|null                                              $namespace
      *
-     * @return \Illuminate\Http\Response
+     * @return RedirectResponse
      */
     public function update(TranslationRequest $request, $language, $file, $namespace = null)
     {
@@ -89,13 +93,13 @@ class Controller extends BaseController
     /**
      * get array of namespace's files
      *
-     * @param \Illuminate\Http\Request $request
+     * @param Request $request
      *
-     * @return \Illuminate\Http\JsonResponse
+     * @return JsonResponse
+     * @throws InvalidNamespaceException
      */
-    public function files(Request $request)
-    {
-        $this->validate($request, ['namespace' => 'nullable|string']);
+    public function files(Request $request){
+        $request->validate( ['namespace' => 'nullable|string']);
 
         return new JsonResponse($this->manager->files($request->get('namespace')));
     }
